@@ -1,0 +1,271 @@
+openapi: 3.0.0
+servers:
+  - url: http://localhost:8081/api
+    description: User Service API
+info:
+  description: This API provides functionality for managing users in the system.
+  version: 1.0.0
+  title: User Service API
+  license:
+    name: Apache-2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+
+tags:
+  - name: users
+    description: User operations
+
+
+paths:
+  #get user by id
+  /users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get User by ID
+      description: Retrieve details of a user by their unique ID.
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+
+  #get all users
+  /users/all:
+    get:
+      tags:
+        - users
+      summary: Get All Users
+      description: Retrieve details of all users.
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: User details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+
+  #Add user
+  /users:
+    post:
+      tags:
+        - users
+      summary: Add Users
+      description: Add user to users table
+      operationId: addUser    #unique identifier of this operation
+      requestBody:
+        description: Add user details to create a new user
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDTO'
+      responses:
+        '200':
+          description: User Added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '404':
+          description: Invalid user inputs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+
+  #Delete User
+  /users/remove/{id}:
+    delete:
+      tags:
+        - users
+      summary: Delete user by id
+      description: Delete user by their unique id
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+  # Update user
+  /users/update/{id}:
+    put:
+      tags:
+        - users
+      summary: Update User by ID
+      description: Update the details of a user by their unique ID.
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user.
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: The updated user details.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDTO'
+      responses:
+        '200':
+          description: User updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '400':
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+
+  /users/order-details/{id}:
+    get:
+      tags:
+        - users
+      summary: Get User details with Order details
+      description: Retrieve user details and their associated orders by user ID.
+      operationId: getUserWithOrderDetails
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User details with orders retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOrderResponse'
+        '404':
+          description: User or orders not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+
+components:
+  schemas:
+    UserOrderResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserDTO'
+        orders:
+          type: array
+          items:
+            $ref: './client.yml#/components/schemas/OrderDTO'
+
+    UserDTO:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+        user_name:
+          type: string
+        email:
+          type: string
+      required:
+        - id
+        - username
+        - email
+
+    Response:
+      type: object
+      properties:
+        responseCode:
+          type: string
+          description: A short error code to describe the error type.
+        message:
+          type: string
+          description: A detailed message explaining the error.
+        timestamp:
+          type: string
+          format: date-time
+          description: The timestamp when the error occurred.
+      required:
+        - responseCode
+        - message
+        - timestamp
+        - object
