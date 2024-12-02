@@ -37,8 +37,6 @@ public class UserService {
 
     //add user
     public Mono<?> addUser(UserDTO userDTO) {
-        System.out.println(userDTO.getUserId());
-        System.out.println(userDTO.getEmail());
         return userRepository.findByEmail(userDTO.getEmail())
                 .flatMap(existingUser -> Mono.error(new UserAlreadyExistsException(
                         "User with email " + userDTO.getEmail() + " already exists")))
@@ -52,14 +50,7 @@ public class UserService {
     //get all users
     public Flux<UserDTO> getAllUsers(){
         return userRepository.findAll()
-                .map(this::toDTO);
-    }
-
-
-    //delete user by id
-    public Mono<UserDTO> deleteUser(Long id){
-        return userRepository.findById(id)
-                .switchIfEmpty(Mono.error(new UserNotFoundException("User not found with this id "+id)))
+                .switchIfEmpty(Mono.error(new UserNotFoundException("No users found in your table")))
                 .map(this::toDTO);
     }
 
@@ -75,19 +66,28 @@ public class UserService {
                 .map(this::toDTO);
     }
 
+
+    //delete user by id
+    public Mono<Void> deleteUser(Long id) {
+        return userRepository.findById(id)
+                .switchIfEmpty(Mono.error(new UserNotFoundException("User not found with this id " + id)))
+                .flatMap(existingUser -> userRepository.deleteById(id));
+    }
+
+
     //get user details and own order details
     public Mono<UserOrderResponse> getUserWithOrders(Long id) {
         return userRepository.findById(id)
                 .switchIfEmpty(Mono.error(new UserNotFoundException("User not found with id: " + id)))
                 .flatMap(user -> {
-                    UserDTO userDTO = toDTO(user); // Map user entity to DTO
+                    UserDTO userDTO = toDTO(user);
                     return orderApi.getOrdersByUserId(id)
-                            .map(this::mapToServerOrderDTO) // Convert each client OrderDTO to server OrderDTO
-                            .collectList() // Collect Flux<OrderDTO> to List<OrderDTO>
+                            .map(this::mapToServerOrderDTO)
+                            .collectList()
                             .map(orderList -> {
                                 UserOrderResponse response = new UserOrderResponse();
                                 response.setUser(userDTO);
-                                response.setOrders(orderList); // Set the list of orders in response
+                                response.setOrders(orderList);
                                 return response;
                             });
                 });
@@ -111,8 +111,9 @@ public class UserService {
     }
 
     private com.Practice.user_service.server.model.OrderDTO mapToServerOrderDTO(com.Practice.user_service.client.model.OrderDTO clientOrderDTO) {
+
         com.Practice.user_service.server.model.OrderDTO serverOrderDTO = new com.Practice.user_service.server.model.OrderDTO();
-        // Map fields manually from clientOrderDTO to serverOrderDTO
+
         serverOrderDTO.setOrderId(clientOrderDTO.getOrderId());
         serverOrderDTO.setUserId(clientOrderDTO.getUserId());
         serverOrderDTO.setProductName(clientOrderDTO.getProductName());

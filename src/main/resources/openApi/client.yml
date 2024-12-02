@@ -44,7 +44,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
+                $ref: './api.yml#/components/schemas/Response'
 
 components:
   schemas:
@@ -71,22 +71,3 @@ components:
         - product_name
         - quantity
         - price
-
-    Response:
-      type: object
-      properties:
-        responseCode:
-          type: string
-          description: A short error code to describe the error type.
-        message:
-          type: string
-          description: A detailed message explaining the error.
-        timestamp:
-          type: string
-          format: date-time
-          description: The timestamp when the error occurred.
-      required:
-        - responseCode
-        - message
-        - timestamp
-        - object

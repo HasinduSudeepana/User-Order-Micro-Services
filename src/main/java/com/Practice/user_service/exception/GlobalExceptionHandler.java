@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
-@RestControllerAdvice
-public class GlobalExceptionHandler {
 
+@RestControllerAdvice    //global exception handler for rest controllers
+public class GlobalExceptionHandler {
     @ExceptionHandler({UserNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Mono<Response> handleUserNotFoundException(UserNotFoundException ex) {
