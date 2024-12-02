@@ -42,7 +42,15 @@ public class OrdersApiImpl implements OrdersApiDelegate {
                     response.setMessage("Order has been added successfully");
                     response.setTimestamp(LocalDateTime.now());
                     return ResponseEntity.ok(response);
-                });
+                })
+                .onErrorResume(e-> Mono.fromSupplier(()->{
+                    Response response = new Response();
+                    response.setMessage(e.getMessage());
+                    response.setResponseCode("ORDER_ADDED_FAILED");
+                    response.setTimestamp(LocalDateTime.now());
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                }));
+
     }
 
     @Override

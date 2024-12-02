@@ -1,5 +1,6 @@
 package com.Practice.order_service.service;
 
+import com.Practice.order_service.exception.OrderAlreadyExistsException;
 import com.Practice.order_service.exception.OrderNotFoundException;
 import com.Practice.order_service.model.Orders;
 import com.Practice.order_service.repository.OrderRepository;
@@ -32,9 +33,12 @@ public class OrderService {
                 .map(this::toDTO);
     }
 
+
+
     //getAllOrders
     public Flux<OrderDTO> getAllOrders(){
         return orderRepository.findAll()
+                .switchIfEmpty(Mono.error(new OrderNotFoundException("Orders not found in your table")))
                 .map(this::toDTO);
     }
 
@@ -53,10 +57,11 @@ public class OrderService {
     }
 
     //delete order
-    public Mono<OrderDTO> deleteUser(Long id){
+    public Mono<Void> deleteUser(Long id){
         return orderRepository.findById(id)
                 .switchIfEmpty(Mono.error(new OrderNotFoundException("Order does not found with this id "+ id)))
-                .map(this::toDTO);
+                .flatMap(existingOrder-> orderRepository.deleteById(id));
+
     }
 
     //get orders by user id
